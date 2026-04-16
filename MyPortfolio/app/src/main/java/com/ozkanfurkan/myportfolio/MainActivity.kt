@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Ekranda göstereceğimiz profil verilerini tek bir model altında toplar.
+// Ekranda göstereceğimiz profil verileri
 data class Profile(
     val fullName: String,
     val university: String,
@@ -99,7 +99,7 @@ fun ProfileScreen(profile: Profile, modifier: Modifier = Modifier) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Avatar alanı: şu an placeholder emoji (istersen görselle değiştirilebilir).
+                    // Avatar alanı
                     Box(
                         modifier = Modifier
                             .size(92.dp)
@@ -145,7 +145,7 @@ fun ProfileScreen(profile: Profile, modifier: Modifier = Modifier) {
             }
         }
 
-        // HAKKIMDA KARTI: kısa bir kendini tanıtma metni için alan.
+        // HAKKIMDA KARTI
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
