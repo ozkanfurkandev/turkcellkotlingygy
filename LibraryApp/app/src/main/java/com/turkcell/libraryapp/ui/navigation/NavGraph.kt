@@ -1,21 +1,62 @@
 package com.turkcell.libraryapp.ui.navigation
 
+import com.turkcell.libraryapp.ui.screen.SplashScreen
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.halit.ui.screen.auth.RegisterScreen
+import com.turkcell.libraryapp.ui.screen.HomeScreen
 import com.turkcell.libraryapp.ui.screen.LoginScreen
-import com.turkcell.libraryapp.ui.screen.RegisterScreen
+import com.turkcell.libraryapp.ui.viewmodel.AuthViewModel
+import com.turkcell.libraryapp.ui.viewmodel.BookViewModel
 
 @Composable
 fun NavGraph(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = Screen.Login.route) {
-        composable(Screen.Login.route) {
-            LoginScreen(navController = navController)
+    val authViewModel: AuthViewModel = viewModel() //oluşturulma aşaması
+    val bookViewModel: BookViewModel = viewModel()
+
+    NavHost(navController = navController, startDestination = Screen.Splash.route)
+    {
+        composable(Screen.Splash.route) {
+            SplashScreen(authViewModel,
+                onAuthenticated = { role ->
+                    navController.navigate(Screen.Homepage.route){
+                        popUpTo(Screen.Splash.route) {inclusive=true}
+                    }
+                },
+                onUnauthenticated = {
+                    navController.navigate(Screen.Login.route)
+                    {
+                        popUpTo(Screen.Splash.route) {inclusive=true}
+                    }
+                })
         }
-        composable(Screen.Register.route) {
-            RegisterScreen(navController = navController)
+
+        composable(Screen.Login.route) { LoginScreen(
+            onNavigateToRegister = { navController.navigate(Screen.Register.route) },
+            onLoginSuccess = {role ->
+                navController.navigate(Screen.Homepage.route) {
+                    popUpTo(Screen.Login.route) {inclusive=true}
+                    // Yığın yalnızca verilen URL ile kalacaktı (false)
+                }
+            },
+            authViewModel
+        ) }
+        composable(Screen.Register.route) { RegisterScreen(
+            onNavigateToLogin = { navController.navigate(Screen.Login.route) },
+            onRegisterSuccess = { role ->
+                navController.navigate(Screen.Homepage.route) {
+                    popUpTo(Screen.Register.route) { inclusive = true }
+                }
+            },
+            authViewModel = authViewModel
+        ) }
+        composable(Screen.Homepage.route) {
+            HomeScreen(authViewModel, bookViewModel)
         }
     }
 }

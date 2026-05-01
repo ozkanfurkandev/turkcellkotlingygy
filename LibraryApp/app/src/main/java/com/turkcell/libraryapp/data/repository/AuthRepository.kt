@@ -1,34 +1,52 @@
 package com.turkcell.libraryapp.data.repository
 
+import com.turkcell.libraryapp.data.model.Profile
+import com.turkcell.libraryapp.data.supabase.supabase
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.delay
+import kotlin.random.Random
 
-class AuthRepository {
-
-    suspend fun signIn(email: String, password: String): Result<Unit> = runCatching {
-        delay(timeMillis = 2000) //dışarıya istek atıyormuş gibi
-
-        val storedPassword = users[email.trim().lowercase()]
-            ?: throw Exception("Kullanıcı bulunamadı")
-
-        if (storedPassword != password)
-            throw Exception("Şifre hatalı")
+class AuthRepository
+{
+    suspend fun signIn(email: String, password:String) : Result<Unit> = runCatching {
+        supabase.auth.signInWith(Email) {
+            this.email = email
+            this.password = password
+        }
     }
 
-    suspend fun signUp(email: String, password: String): Result<Unit> = runCatching {
-        delay(timeMillis = 2000) //dışarıya istek atıyormuş gibi
+    suspend fun signUp(
+        email: String,
+        password: String,
+        fullName: String,
+        studentNo: String?
+    ) : Result<Unit> = runCatching {
+        supabase.auth.signUpWith(Email){
+            this.email = email
+            this.password = password
+        }
 
-        val key = email.trim().lowercase() //kullanıcı büyük/küçük harf farkıyla giriş yapamasın diye.
-        if (key.isBlank())
-            throw Exception("E-posta boş olamaz")
-        if (password.isBlank())
-            throw Exception("Şifre boş olamaz")
-        if (users.containsKey(key))
-            throw Exception("Bu e-posta zaten kayıtlı")
+        val userId = supabase.auth.currentUserOrNull()?.id ?: error("Kullanıcı bulunamadı")
 
-        users[key] = password
+        supabase.postgrest["profiles"].insert(
+            Profile(userId, "student", fullName, studentNo)
+        )
     }
 
-    companion object {
-        private val users: MutableMap<String, String> = mutableMapOf()
+    suspend fun signOut() {
+        supabase.auth.signOut()
     }
+
+    fun getCurrentUserId() : String?
+    {
+        return supabase.auth.currentUserOrNull()?.id;
+    }
+
+    suspend fun getProfile(userId: String): Profile? = runCatching {
+        supabase.postgrest["profiles"]
+            .select { filter { eq("user_id", userId) }  }
+            .decodeSingle<Profile>()
+    }.getOrNull()
 }
