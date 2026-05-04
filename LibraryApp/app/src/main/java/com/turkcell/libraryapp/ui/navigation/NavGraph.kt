@@ -1,7 +1,6 @@
 package com.turkcell.libraryapp.ui.navigation
 
 import com.turkcell.libraryapp.ui.screen.SplashScreen
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -11,13 +10,16 @@ import androidx.navigation.compose.rememberNavController
 import com.example.halit.ui.screen.auth.RegisterScreen
 import com.turkcell.libraryapp.ui.screen.HomeScreen
 import com.turkcell.libraryapp.ui.screen.LoginScreen
+import com.turkcell.libraryapp.ui.screen.MyBorrowsScreen
 import com.turkcell.libraryapp.ui.viewmodel.AuthViewModel
 import com.turkcell.libraryapp.ui.viewmodel.BookViewModel
+import com.turkcell.libraryapp.ui.viewmodel.BorrowViewModel
 
 @Composable
 fun NavGraph(navController: NavHostController = rememberNavController()) {
-    val authViewModel: AuthViewModel = viewModel() //oluşturulma aşaması
+    val authViewModel: AuthViewModel = viewModel()
     val bookViewModel: BookViewModel = viewModel()
+    val borrowViewModel: BorrowViewModel = viewModel()
 
     NavHost(navController = navController, startDestination = Screen.Splash.route)
     {
@@ -41,7 +43,6 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
             onLoginSuccess = {role ->
                 navController.navigate(Screen.Homepage.route) {
                     popUpTo(Screen.Login.route) {inclusive=true}
-                    // Yığın yalnızca verilen URL ile kalacaktı (false)
                 }
             },
             authViewModel
@@ -56,7 +57,18 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
             authViewModel = authViewModel
         ) }
         composable(Screen.Homepage.route) {
-            HomeScreen(authViewModel, bookViewModel)
+            HomeScreen(
+                authViewModel = authViewModel,
+                bookViewModel = bookViewModel,
+                borrowViewModel = borrowViewModel,
+                onNavigateToMyBorrows = { navController.navigate(Screen.MyBorrows.route) }
+            )
+        }
+        composable(Screen.MyBorrows.route) {
+            MyBorrowsScreen(
+                borrowViewModel = borrowViewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }

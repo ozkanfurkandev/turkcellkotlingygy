@@ -10,9 +10,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,7 +30,9 @@ import com.turkcell.libraryapp.data.model.Book
 fun BookCard(
     book: Book,
     modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    onBorrowClick: ((Book) -> Unit)? = null,
+    isBorrowing: Boolean = false
 ) {
     val isAvailable = book.availableCopies > 0
 
@@ -112,13 +117,49 @@ fun BookCard(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (isAvailable) {
+                Button(
+                    onClick = { onBorrowClick?.invoke(book) },
+                    enabled = !isBorrowing && onBorrowClick != null,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text(
+                        text = if (isBorrowing) "İşleniyor..." else "ÖDÜNÇ AL",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            } else {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.errorContainer
+                ) {
+                    Text(
+                        text = "STOKTA YOK",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+            }
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun BookCardPreview() {
+private fun BookCardAvailablePreview() {
     BookCard(
         book = Book(
             id = "1",
@@ -129,6 +170,24 @@ private fun BookCardPreview() {
             pageCount = 687,
             totalCopies = 5,
             availableCopies = 2
+        ),
+        onBorrowClick = {}
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BookCardOutOfStockPreview() {
+    BookCard(
+        book = Book(
+            id = "2",
+            title = "Beyaz Geceler",
+            author = "Fyodor Dostoyevski",
+            isbn = "978-975-08-0002-2",
+            category = "Roman",
+            pageCount = 120,
+            totalCopies = 3,
+            availableCopies = 0
         )
     )
 }
